@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>eGift — Modern Gift Marketplace</title>
+  <style>
+    :root{
+      --accent:#7c3aed;
+      --muted:#6b7280;
+      --card:#ffffff;
+      --bg:#f7f7fb;
+      --glass: rgba(255,255,255,0.6);
+      --radius:12px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#f8fafc, #f3f4f6);color:#111827;}
+    header{backdrop-filter: blur(6px);background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.5));position:sticky;top:0;z-index:60;border-bottom:1px solid rgba(0,0,0,0.04)}
+    .container{max-width:1100px;margin:0 auto;padding:20px}
+    .nav{display:flex;gap:16px;align-items:center;justify-content:space-between}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#3b82f6);display:flex;align-items:center;justify-content:center;color:white;font-weight:700}
+    nav a{color:var(--muted);text-decoration:none;padding:8px 10px;border-radius:8px}
+    nav a.active, nav a:hover{color:var(--accent);background:rgba(124,58,237,0.06)}
+    .search{flex:1;margin:0 16px}
+    input[type="search"]{width:100%;padding:10px 14px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);font-size:15px}
+
+    main{padding:28px 0}
+    .hero{display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:center}
+    .card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:0 6px 20px rgba(15,23,42,0.06)}
+    .hero-left h1{margin:0;font-size:28px}
+    .features{display:flex;gap:10px;margin-top:12px}
+    .feature{padding:8px 12px;border-radius:10px;background:linear-gradient(180deg,rgba(124,58,237,0.06),rgba(59,130,246,0.03));font-weight:600;color:var(--accent)}
+
+    /* grid of products */
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:18px}
+    .product{padding:14px;border-radius:12px;background:linear-gradient(180deg, #fff, #fbfbfd);border:1px solid rgba(15,23,42,0.03);display:flex;flex-direction:column}
+    .product img{width:100%;height:160px;object-fit:cover;border-radius:10px}
+    .pmeta{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+    .price{font-weight:700;color:var(--accent)}
+    .btn{padding:10px 12px;border-radius:10px;border:0;background:var(--accent);color:white;cursor:pointer}
+    .btn.ghost{background:transparent;border:1px solid rgba(15,23,42,0.06);color:var(--muted)}
+
+    /* sidebar cart */
+    .cart-drawer{position:fixed;right:18px;top:84px;width:340px;background:linear-gradient(180deg,#fff,#fbfbfd);box-shadow:0 20px 60px rgba(15,23,42,0.08);border-radius:14px;padding:14px;transform:translateX(0);transition:all .28s;z-index:80}
+    .cart-drawer.hidden{transform:translateX(120%);opacity:0;pointer-events:none}
+    .cart-item{display:flex;gap:12px;align-items:center;padding:8px 0;border-bottom:1px dashed rgba(0,0,0,0.04)}
+    .cart-item img{width:56px;height:56px;border-radius:8px;object-fit:cover}
+
+    /* responsive */
+    @media (max-width:900px){
+      .hero{grid-template-columns:1fr}
+      .grid{grid-template-columns:repeat(2,1fr)}
+      .container{padding:12px}
+      .cart-drawer{display:none}
+    }
+    @media (max-width:520px){
+      .grid{grid-template-columns:1fr}
+      nav .search{display:none}
+      .logo{width:40px;height:40px}
+    }
+
+    /* small utilities */
+    .muted{color:var(--muted)}
+    .center{display:flex;align-items:center;gap:8px}
+    footer{margin-top:28px;padding:26px 0;color:var(--muted)}
+
+    /* modal */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(10,11,12,0.35);display:flex;align-items:center;justify-content:center;z-index:120}
+    .modal{width:720px;max-width:96%;background:var(--card);padding:18px;border-radius:12px}
+    .modal .grid{grid-template-columns:1fr 1fr}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="brand">
+        <div class="logo">EG</div>
+        <div>
+          <div style="font-weight:700">eGift</div>
+          <div class="muted" style="font-size:12px">Gifts, cards & experiences</div>
+        </div>
+      </div>
+
+      <div style="flex:1;margin:0 16px">
+        <input id="searchInput" type="search" placeholder="Search gifts, cards, experiences..." />
+      </div>
+
+      <nav>
+        <a href="#home" class="navlink active">Home</a>
+        <a href="#browse" class="navlink">Browse</a>
+        <a href="#orders" class="navlink">Orders</a>
+        <a href="#account" class="navlink">Account</a>
+        <button id="cartToggle" class="btn" style="margin-left:10px">Cart (<span id="cartCount">0</span>)</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- HOME / HERO -->
+    <section id="home" class="hero card hero-left">
+      <div>
+        <h1>Find the perfect gift in minutes 🎁</h1>
+        <p class="muted">Curated gifts, e-cards, and experiences — filter by price, category, and occasion.</p>
+        <div class="features">
+          <div class="feature">Instant delivery</div>
+          <div class="feature">Personalize</div>
+          <div class="feature">Secure payments</div>
+        </div>
+
+        <div style="margin-top:18px;display:flex;gap:10px">
+          <button class="btn" onclick="location.hash='#browse'">Browse Gifts</button>
+          <button class="btn ghost" onclick="openLogin()">Login</button>
+        </div>
+
+        <div class="card" style="margin-top:18px">
+          <strong>How it works</strong>
+          <ol class="muted" style="margin:8px 0 0 18px">
+            <li>Choose a gift</li>
+            <li>Personalize message & delivery</li>
+            <li>Pay & we'll send instantly</li>
+          </ol>
+        </div>
+      </div>
+
+      <aside class="card">
+        <h3 style="margin:0 0 8px 0">Gift of the day</h3>
+        <img src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=abc" alt="gift" style="width:100%;height:200px;object-fit:cover;border-radius:10px">
+        <p class="muted" style="margin-top:8px">Send this curated gift instantly with a note.</p>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn" onclick="addToCart(sampleProducts[0])">Add to cart</button>
+          <button class="btn ghost" onclick="openProductModal(sampleProducts[0])">Preview</button>
+        </div>
+      </aside>
+    </section>
+
+    <!-- BROWSE -->
+    <section id="browse" style="margin-top:18px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h2 style="margin:0">Browse gifts</h2>
+        <div class="muted">Showing <span id="resultsCount">0</span> results</div>
+      </div>
+
+      <div class="grid" id="productGrid">
+        <!-- products inserted by JS -->
+      </div>
+    </section>
+
+    <footer class="container">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <strong>eGift</strong>
+          <div class="muted">© <span id="year"></span> eGift Marketplace</div>
+        </div>
+        <div class="muted">Made with ❤️ — simple demo project</div>
+      </div>
+    </footer>
+  </main>
+
+  <!-- Cart drawer -->
+  <aside id="cartDrawer" class="cart-drawer hidden" aria-hidden="true">
+    <h3 style="margin:0 0 8px 0">Your cart</h3>
+    <div id="cartItems"></div>
+    <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+      <div><strong>Total:</strong> <span id="cartTotal">₹0.00</span></div>
+      <div>
+        <button class="btn ghost" onclick="clearCart()">Clear</button>
+        <button class="btn" onclick="checkout()">Checkout</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Modal (hidden) -->
+  <div id="modalBackdrop" class="modal-backdrop" style="display:none">
+    <div class="modal" role="dialog">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <strong id="modalTitle">Product</strong>
+        <button onclick="closeModal()" class="btn ghost">Close</button>
+      </div>
+      <div class="grid" style="gap:12px">
+        <div>
+          <img id="modalImg" src="" alt="" style="width:100%;height:260px;object-fit:cover;border-radius:10px">
+        </div>
+        <div>
+          <p id="modalDesc" class="muted"></p>
+          <div style="margin-top:12px;display:flex;align-items:center;gap:12px">
+            <div style="font-weight:800;font-size:18px" id="modalPrice">₹0</div>
+            <button class="btn" id="modalAdd">Add to cart</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login modal (simple) -->
+  <div id="loginBackdrop" class="modal-backdrop" style="display:none">
+    <div class="modal">
+      <h3>Login / Sign up</h3>
+      <p class="muted">This demo doesn't have real auth — it's a UI placeholder.</p>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <input id="email" placeholder="Email" style="flex:1;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)" />
+        <input id="name" placeholder="Your name" style="flex:1;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)" />
+      </div>
+      <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px">
+        <button class="btn ghost" onclick="closeLogin()">Cancel</button>
+        <button class="btn" onclick="doLogin()">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Sample product data (replace with API in real app)
+    const sampleProducts = [
+      {id:1,title:'Premium Chocolate Box',price:599,image:'https://images.unsplash.com/photo-1602524811817-9e18f9d8b3a7?q=80&w=800&auto=format&fit=crop',desc:'Hand-picked artisanal chocolates packaged beautifully.'},
+      {id:2,title:'Spa Gift Voucher',price:1299,image:'https://images.unsplash.com/photo-1556228720-4df4a6b8a7a9?q=80&w=800&auto=format&fit=crop',desc:'Relaxing spa experience — redeemable at partner locations.'},
+      {id:3,title:'Coffee Lovers Hamper',price:749,image:'https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=800&auto=format&fit=crop',desc:'Single-origin beans, a mug & artisan biscuits.'},
+      {id:4,title:'Flowers Bouquet',price:899,image:'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?q=80&w=800&auto=format&fit=crop',desc:'Fresh seasonal flowers wrapped with care.'},
+      {id:5,title:'Handmade Candle Set',price:449,image:'https://images.unsplash.com/photo-1493666438817-866a91353ca9?q=80&w=800&auto=format&fit=crop',desc:'Scented soy candles with calming aroma.'},
+      {id:6,title:'Virtual Cooking Class',price:1599,image:'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=800&auto=format&fit=crop',desc:'Live online class with a pro chef.'}
+    ];
+
+    // app state
+    let CART = [];
+    const productGrid = document.getElementById('productGrid');
+    const resultsCount = document.getElementById('resultsCount');
+    const cartCount = document.getElementById('cartCount');
+    const cartDrawer = document.getElementById('cartDrawer');
+    const cartItemsEl = document.getElementById('cartItems');
+    const cartTotalEl = document.getElementById('cartTotal');
+
+    function renderProducts(list){
+      productGrid.innerHTML = '';
+      list.forEach(p=>{
+        const el = document.createElement('div'); el.className='product';
+        el.innerHTML = `
+          <img src="${p.image}" alt="${p.title}" />
+          <div style="margin-top:10px">
+            <div style="font-weight:700">${p.title}</div>
+            <div class="muted" style="font-size:13px;margin-top:6px">${p.desc}</div>
+            <div class="pmeta">
+              <div class="price">₹${p.price}</div>
+              <div style="display:flex;gap:8px">
+                <button class="btn ghost" onclick='openProductModal(${JSON.stringify(p)})'>Preview</button>
+                <button class="btn" onclick='addToCart(${JSON.stringify(p)})'>Add</button>
+              </div>
+            </div>
+          </div>
+        `;
+        productGrid.appendChild(el);
+      });
+      resultsCount.textContent = list.length;
+    }
+
+    // cart functions
+    function addToCart(product){
+      const found = CART.find(i=>i.id===product.id);
+      if(found) found.qty++;
+      else CART.push({...product, qty:1});
+      updateCartUI();
+      // small toast
+      flash(`${product.title} added to cart`);
+    }
+    function updateCartUI(){
+      cartItemsEl.innerHTML = '';
+      let total = 0; let qty=0;
+      CART.forEach(item=>{
+        total += item.price * item.qty; qty += item.qty;
+        const div = document.createElement('div'); div.className='cart-item';
+        div.innerHTML = `
+          <img src="${item.image}" />
+          <div style="flex:1">
+            <div style="font-weight:700">${item.title}</div>
+            <div class="muted">₹${item.price} x ${item.qty}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <button class="btn ghost" onclick='decrease(${item.id})'>-</button>
+            <button class="btn" onclick='increase(${item.id})'>+</button>
+          </div>
+        `;
+        cartItemsEl.appendChild(div);
+      });
+      cartTotalEl.textContent = `₹${total.toFixed(2)}`;
+      cartCount.textContent = qty;
+    }
+    function increase(id){ const it=CART.find(x=>x.id===id); if(it){it.qty++; updateCartUI();} }
+    function decrease(id){ const it=CART.find(x=>x.id===id); if(it){ it.qty--; if(it.qty<=0) CART = CART.filter(x=>x.id!==id); updateCartUI(); } }
+    function clearCart(){ CART=[]; updateCartUI(); flash('Cart cleared'); }
+
+    // cart drawer toggle
+    document.getElementById('cartToggle').addEventListener('click', ()=>{
+      cartDrawer.classList.toggle('hidden');
+      cartDrawer.setAttribute('aria-hidden', cartDrawer.classList.contains('hidden'));
+    });
+
+    function checkout(){
+      if(CART.length===0){ flash('Cart is empty'); return; }
+      // demo checkout flow
+      const total = CART.reduce((s,i)=>s+i.price*i.qty,0);
+      flash(`Checkout — Total ₹${total.toFixed(2)} (demo)`);
+      // clear cart for demo
+      CART=[]; updateCartUI(); cartDrawer.classList.add('hidden');
+    }
+
+    // modal functions
+    function openProductModal(p){
+      document.getElementById('modalTitle').textContent = p.title;
+      document.getElementById('modalImg').src = p.image;
+      document.getElementById('modalDesc').textContent = p.desc;
+      document.getElementById('modalPrice').textContent = `₹${p.price}`;
+      document.getElementById('modalAdd').onclick = ()=>{ addToCart(p); closeModal(); };
+      document.getElementById('modalBackdrop').style.display='flex';
+    }
+    function closeModal(){ document.getElementById('modalBackdrop').style.display='none'; }
+
+    // login modal
+    function openLogin(){ document.getElementById('loginBackdrop').style.display='flex'; }
+    function closeLogin(){ document.getElementById('loginBackdrop').style.display='none'; }
+    function doLogin(){ flash('Logged in (demo)'); closeLogin(); }
+
+    // small helper toast
+    function flash(msg){
+      const t = document.createElement('div');
+      t.textContent = msg; t.style.position='fixed';t.style.left='50%';t.style.transform='translateX(-50%)';t.style.bottom='28px';t.style.background='rgba(0,0,0,0.8)';t.style.color='white';t.style.padding='10px 14px';t.style.borderRadius='8px';t.style.zIndex=200;
+      document.body.appendChild(t);
+      setTimeout(()=>{ t.style.opacity=0; setTimeout(()=>t.remove(),400); },1800);
+    }
+
+    // search
+    document.getElementById('searchInput').addEventListener('input', (e)=>{
+      const q=e.target.value.toLowerCase().trim();
+      const filtered = sampleProducts.filter(p=>p.title.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q));
+      renderProducts(filtered);
+    });
+
+    // init
+    document.getElementById('year').textContent = new Date().getFullYear();
+    renderProducts(sampleProducts);
+    updateCartUI();
+  </script>
+</body>
+</html>
